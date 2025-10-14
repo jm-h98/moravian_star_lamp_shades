@@ -106,7 +106,7 @@ void setup() {
 
   interpolationList = cp5.addDropdownList("interpolationMethod")
     .setSize(200, 150)
-    .setPosition(20, 600)
+    .setPosition(20, 320)
     .setBarHeight(20)
     .setItemHeight(20)
     .setLabel("Interpolation Method");
@@ -115,7 +115,7 @@ void setup() {
   interpolationList.setValue(interpolation);
 
   featureDepthSlider = cp5.addSlider("featureDepth")
-    .setPosition(20, 230)
+    .setPosition(20, 210)
     .setSize(200, 20)
     .setRange(featureDepthMin, featureDepthMax)
     .setDecimalPrecision(2)
@@ -137,17 +137,17 @@ void setup() {
     .setLabel("Maximum Overhead Angle");
 
   randomizeButton = cp5.addButton("randomizeDesign")
-    .setPosition(20, 330)
+    .setPosition(20, 420)
     .setSize(200, 30)
     .setLabel("Randomize Design");
 
   saveDesignButton = cp5.addButton("saveDesign")
-    .setPosition(20, 370)
+    .setPosition(20, 460)
     .setSize(200, 30)
     .setLabel("Save Design");
 
   loadDesignButton = cp5.addButton("loadDesign")
-    .setPosition(20, 400)
+    .setPosition(20, 500)
     .setSize(200, 30)
     .setLabel("Load Design");
 
