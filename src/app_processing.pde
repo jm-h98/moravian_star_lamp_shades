@@ -53,7 +53,7 @@ float zoom = 3.0; // for mouse wheel zooming
 
 Slider topDiameterSlider, middleDiameterSlider, bottomDiameterSlider, featureDepthSlider;
 Button exportButton, costButton, randomizeButton, saveDesignButton, loadDesignButton;
-DropdownList dlist;
+DropdownList dlist, interpolationList;
 
 // ==========================
 // SETUP & DRAW
@@ -69,25 +69,29 @@ void setup() {
     .setPosition(20, 20)
     .setSize(200, 20)
     .setRange(topDiameterMin, topDiameterMax)
-    .setValue(topDiameter);
+    .setValue(topDiameter)
+    .setLabel("Top Diameter (mm)");
 
   middleDiameterSlider = cp5.addSlider("middleDiameter")
     .setPosition(20, 50)
     .setSize(200, 20)
     .setRange(middleDiameterMin, middleDiameterMax)
-    .setValue(middleDiameter);
+    .setValue(middleDiameter)
+    .setLabel("Middle Diameter (mm)");
 
   bottomDiameterSlider = cp5.addSlider("bottomDiameter")
     .setPosition(20, 80)
     .setSize(200, 20)
     .setRange(bottomDiameterMin, bottomDiameterMax)
-    .setValue(bottomDiameter);
+    .setValue(bottomDiameter)
+    .setLabel("Bottom Diameter (mm)");
 
   cp5.addSlider("cylinderHeight")
     .setPosition(20, 110)
     .setSize(200, 20)
     .setRange(cylinderHeightMin, cylinderHeightMax)
-    .setValue(cylinderHeight);
+    .setValue(cylinderHeight)
+    .setLabel("Cylinder Height (mm)");
 
   cp5.addSlider("featureCount")
     .setPosition(20, 170)
@@ -95,34 +99,40 @@ void setup() {
     .setRange(featureCountMin, featureCountMax)
     .setNumberOfTickMarks((int)(featureCountMax - featureCountMin + 1))
     .setDecimalPrecision(0)
-    .setValue(featureCount);
+    .setValue(featureCount)
+    .setLabel("Feature Count");
 
-  cp5.addSlider("interplationMethod")
-    .setPosition(20, 200)
-    .setSize(200, 20)
-    .setRange(0, 2)
-    .setNumberOfTickMarks(3)
-    .setDecimalPrecision(0)
-    .setValue(interpolation);
+  interpolationList = cp5.addDropdownList("interpolationMethod")
+    .setSize(200, 150)
+    .setPosition(20, 600)
+    .setBarHeight(20)
+    .setItemHeight(20)
+    .setLabel("Interpolation Method");
+  interpolationList.addItem("Bezier", 0);
+  interpolationList.addItem("Lagrange", 1);
+  interpolationList.setValue(interpolation);
 
   featureDepthSlider = cp5.addSlider("featureDepth")
     .setPosition(20, 230)
     .setSize(200, 20)
     .setRange(featureDepthMin, featureDepthMax)
     .setDecimalPrecision(2)
-    .setValue(featureDepth);
+    .setValue(featureDepth)
+    .setLabel("Feature Depth (mm)");
 
   cp5.addSlider("detail")
     .setPosition(20, 260)
     .setSize(200, 20)
     .setRange(detailMin, detailMax)
-    .setValue(detail);
+    .setValue(detail)
+    .setLabel("Level of Detail");
 
   cp5.addSlider("overhangAngle")
     .setPosition(20, 290)
     .setSize(200, 20)
     .setRange(overhangAngleMin, overhangAngleMax)
-    .setValue(overhangAngle);
+    .setValue(overhangAngle)
+    .setLabel("Maximum Overhead Angle");
 
   randomizeButton = cp5.addButton("randomizeDesign")
     .setPosition(20, 330)
@@ -143,7 +153,8 @@ void setup() {
   dlist = cp5.addDropdownList("designModeSelector")
     .setSize(200, 150)
     .setBarHeight(20)
-    .setItemHeight(20);
+    .setItemHeight(20)
+    .setLabel("Design Mode Selection");
 
   dlist.addItem("Ripples", 1);
   dlist.addItem("Spirals", 2);
@@ -203,6 +214,9 @@ void controlEvent(ControlEvent theEvent) {
     // theEvent.getValue() returns the index (0 for first item, etc.)
     // so add 1 to match designMode numbers:
     designMode = int(theEvent.getValue()) + 1;
+  }
+  if (theEvent.getController().getName().equals("interpolationMethod")) {
+    interpolation = int(theEvent.getValue());
   }
   if (theEvent.isFrom(topDiameterSlider) || theEvent.isFrom(middleDiameterSlider) || theEvent.isFrom(bottomDiameterSlider)) {
     updateFeatureDepth();
@@ -278,20 +292,6 @@ float designOffset(float u, float v) {
       break;
   }
   return offset;
-}
-
-float triangleWave(float x, float period) {
-    // Ensure a positive remainder.
-    float local = x % period;
-    if (local < 0) {
-        local += period;
-    }
-    float t = local / period;
-    if (t <= 0.5) {
-        return 2 * t;
-    } else {
-        return 2 * (1 - t);
-    }
 }
 
 // ==========================
@@ -487,7 +487,7 @@ PVector transformVertex(PVector p) {
 
 // Helper: create name and save parameters
 String createName(){
-  return designMode + "_" + topDiameter + "_" + middleDiameter + "_" + bottomDiameter + "_" + cylinderHeight + "_" + featureCount + "_" + String.format("%.02f", featureDepth) + "_" + detail;
+  return designMode + "_" ;
 }
 
 // Helper: export a quad as two triangles.
