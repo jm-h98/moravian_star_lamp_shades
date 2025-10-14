@@ -1,4 +1,5 @@
 import controlP5.*;
+import java.util.Map;
 
 ControlP5 cp5;
 
@@ -39,7 +40,7 @@ float featureDepth    = 2;
 
 // --- Design Mode ---
 int designMode = -1;
-int interpolation = 0;      // to set interpolation method: 1 = lagrangian, 0 = bezier, 2 = linear
+int interpolation = 0;      // to set interpolation method: 1 = lagrangian, 0 = bezier
 
 int detail = 150;                 // resolution (more → smoother)
 final float density = 1.31;       // for bambulab pla matte
@@ -54,6 +55,7 @@ float zoom = 3.0; // for mouse wheel zooming
 Slider topDiameterSlider, middleDiameterSlider, bottomDiameterSlider, featureDepthSlider;
 Button exportButton, costButton, randomizeButton, saveDesignButton, loadDesignButton;
 DropdownList dlist, interpolationList;
+String designName = "Default", interpolationName = "Bezier";
 
 // ==========================
 // SETUP & DRAW
@@ -214,9 +216,15 @@ void controlEvent(ControlEvent theEvent) {
     // theEvent.getValue() returns the index (0 for first item, etc.)
     // so add 1 to match designMode numbers:
     designMode = int(theEvent.getValue()) + 1;
+    if(designMode != 0){
+      Map item = dlist.getItem(designMode - 1);
+      designName = (String)item.get("name");
+    }
   }
   if (theEvent.getController().getName().equals("interpolationMethod")) {
     interpolation = int(theEvent.getValue());
+    Map item = interpolationList.getItem(interpolation);
+    interpolationName = (String)item.get("name");
   }
   if (theEvent.isFrom(topDiameterSlider) || theEvent.isFrom(middleDiameterSlider) || theEvent.isFrom(bottomDiameterSlider)) {
     updateFeatureDepth();
@@ -280,14 +288,6 @@ float designOffset(float u, float v) {
       float d = cos(featureCount * TWO_PI * u + 2.0 * v) + 0.7 * sin(featureCount * v + u * 2.7);
       offset = featureDepth * 0.5 * d;
       break;
-    case 13:
-      float facetsU = 10;  // Number of "longitude" facets
-      float facetsV = 8;   // Number of "latitude" facets
-      float quantU = floor(u * facetsU) / facetsU;
-      float quantV = floor(v * facetsV) / facetsV;
-      offset = featureDepth * noise(quantU * 10, quantV * 10);
-      print(offset);
-      break;
     default:
       break;
   }
@@ -304,14 +304,20 @@ float designOffset(float u, float v) {
    Then the design–dependent offset is added.
 */
 float quadraticProfile(float u) {
+  // use radius instead of diameter
+  float P0 = 0.5f * topDiameter;
+  float M  = 0.5f * middleDiameter;
+  float P2 = 0.5f * bottomDiameter;
+  
   if(interpolation == 1){
     // lagrange interpolation of horizontal profile:
     // u = 0 → topDiameter/2,  u = 0.5 → middleDiameter/2,  u = 1 → bottomDiameter/2.
-    return (2 * (u - 1) * ( u - 0.5f) * topDiameter) - (4 * ( u - 1) * u * middleDiameter) + (2 * u * (u - 0.5f) * bottomDiameter);
+    return (2.0f * (u - 1.0f) * (u - 0.5f) * P0) - (4.0f * (u - 1.0f) * u * M ) + (2.0f * u * (u - 0.5f) * P2);
   } else {
     // bezier interpolation of horizontal profile:
     // u = 0 → topDiameter/2,  u = 0.5 → control point,  u = 1 → bottomDiameter/2.
-    return ((1 - u) * (1 - u) * (topDiameter / 2.0)) + (2 * (1 - u) * u * (middleDiameter / 2.0)) + (u * u * (bottomDiameter / 2.0));
+    float oneMinusU = 1.0f - u;
+    return oneMinusU * oneMinusU * P0 + 2.0f * oneMinusU * u * M + u * u * P2;
   }
 }
 
@@ -431,7 +437,8 @@ void randomizeDesign(){
   bottomDiameter = int(random(bottomDiameterMin, bottomDiameterMax));
   cylinderHeight = int(random(cylinderHeightMin, cylinderHeightMax));
   featureCount   = int(random(featureCountMin, featureCountMax));
-  designMode     = int(random(0, 11));
+  designMode     = int(random(0, 12));
+  interpolation  = int(random(0, 2));
   
   updateFeatureDepth();
   featureDepth   = random(featureDepthMin, featureDepthMax);
@@ -445,6 +452,9 @@ void randomizeDesign(){
   cp5.getController("cylinderHeight").setValue(cylinderHeight);
   cp5.getController("featureCount").setValue(featureCount);
   dlist.setValue(designMode);
+  dlist.setLabel(designName);
+  interpolationList.setValue(interpolation);
+  interpolationList.setLabel(interpolationName);
 }
 
 
@@ -487,7 +497,11 @@ PVector transformVertex(PVector p) {
 
 // Helper: create name and save parameters
 String createName(){
-  return designMode + "_" ;
+  String measures = topDiameter + "_" + middleDiameter + "_" + bottomDiameter + "_" + cylinderHeight;
+  String features = featureCount + "_" + String.format("%.02f", featureDepth);
+  String misc = overhangAngle + "_" + interpolation + "_" + detail;
+  
+  return designName + "_" + measures + "_" + features + "_" + misc;
 }
 
 // Helper: export a quad as two triangles.
@@ -641,8 +655,8 @@ void saveDesign(){
   String[] lines = new String[1];
   lines[0] = topDiameter + "," + middleDiameter + "," + bottomDiameter + "," +
              cylinderHeight + "," + featureCount + "," +
-             featureDepth + "," + detail + "," + overhangAngle + "," + designMode;
-  saveStrings(createName() + ".txt", lines);
+             featureDepth + "," + detail + "," + overhangAngle + "," + designMode + "," + interpolation;
+  saveStrings(createName() + ".lampshade", lines);
   println("Design saved.");
 }
 
@@ -670,6 +684,7 @@ void fileSelected(File selection) {
       detail         = int(tokens[6]);
       overhangAngle  = int(tokens[7]);
       designMode     = int(tokens[8]);
+      interpolation  = int(tokens[9]);
 
       // Update the UI elements accordingly:
       featureDepthSlider.setValue(featureDepth);
@@ -682,6 +697,9 @@ void fileSelected(File selection) {
       cp5.getController("overhangAngle").setValue(overhangAngle);
       if (dlist != null) {
          dlist.setValue(designMode - 1);
+      }
+      if (interpolationList != null) {
+         interpolationList.setValue(interpolation);
       }
       
       println("Design loaded from: " + selection.getAbsolutePath());
