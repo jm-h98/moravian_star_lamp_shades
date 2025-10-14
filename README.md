@@ -46,7 +46,7 @@ There are currently 13 different designs that can be further modified:
 ### Installation
 
 Install the official version of Processing from the [download page](https://processing.org/download).
-Then just open `./app_processing/app_processing.pde` in Processing and hit play.
+Then just open `./src/app_processing.pde` in Processing and hit play.
 
 
 # Usage

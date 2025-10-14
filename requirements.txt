@@ -1,4 +1,0 @@
-numpy
-trimesh
-vispy
-PyQt6
