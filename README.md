@@ -4,7 +4,7 @@ This script is for interactively generating lamp shades that can be 3D printed a
 
 You can test the designs for yourself in the browser: https://gestalte-deinen-lampenschirm.de.
 If you want to create the stl corresponding to your online design, you can export the parameters and save them to a file, then import them into either the Processing or Python generator.
-Alternatively, you can design the lamp shades in the Processing or python GUI and directly export the STLs.
+Alternatively, you can design the lamp shades in the Processing GUI and directly export the STLs.
 
 There are currently 13 different designs that can be further modified:
 
@@ -47,23 +47,6 @@ There are currently 13 different designs that can be further modified:
 
 Install the official version of Processing from the [download page](https://processing.org/download).
 Then just open `./app_processing/app_processing.pde` in Processing and hit play.
-
-
-## Python version
-
-<p align="center">
-  <img src="images/screenshot_python.png" alt="Screenshot of Python GUI" width="75%">
-</p>
-
-### Installation
-
-```bash
-# Clone the github repo and go to the default directory
-git clone git@github.com:jm-h98/moravian_star_lamp_shades.git
-cd ./moravian_star_lamp_shades
-pip install -r requirements.txt
-python app.py
-```
 
 
 # Usage
